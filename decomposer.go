@@ -229,6 +229,240 @@ func (decomposer *Decomposer) ReadBytes() ([]byte, error) {
 	return bytes, nil
 }
 
+func (decomposer *Decomposer) ReadInt8Array() ([]int8, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]int8, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadUint8Array() ([]uint8, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]uint8, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadInt16Array() ([]int16, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]int16, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadUint16Array() ([]uint16, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]uint16, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadInt32Array() ([]int32, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]int32, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadUint32Array() ([]uint32, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]uint32, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadInt64Array() ([]int64, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]int64, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadUint64Array() ([]uint64, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]uint64, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadFloat32Array() ([]float32, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]float32, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadFloat64Array() ([]float64, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]float64, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadComplex64Array() ([]complex64, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]complex64, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadComplex128Array() ([]complex128, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]complex128, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (decomposer *Decomposer) ReadRunes() ([]rune, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]rune, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
 // ReadNBytes reads n bytes from the packet.
 func (decomposer *Decomposer) ReadNBytes(n int) ([]byte, error) {
 	bytes := make([]byte, n)

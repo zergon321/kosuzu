@@ -112,6 +112,175 @@ func (builder *Builder) AddBytes(val []byte) error {
 	return err
 }
 
+func (builder *Builder) AddInt8Array(val []int8) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val)))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddUint8Array(val []uint8) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val)))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddInt16Array(val []int16) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val) * 2))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddUint16Array(val []uint16) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val) * 2))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddInt32Array(val []int32) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val) * 4))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddUint32Array(val []uint32) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val) * 4))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddInt64Array(val []int64) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val) * 8))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddUint64Array(val []uint64) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val) * 8))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddFloat32Array(val []float32) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val) * 4))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddFloat64Array(val []float64) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val) * 8))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddComplex64Array(val []complex64) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val) * 8))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddComplex128Array(val []complex128) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val) * 16))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
+func (builder *Builder) AddRunes(val []rune) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val) * 4))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
 // BuildPacket returns a packet with written values.
 func (builder *Builder) BuildPacket(opcode int32) *Packet {
 	return NewPacket(opcode, builder.buffer.Bytes())
