@@ -5,18 +5,20 @@ import (
 	"encoding/binary"
 )
 
-// Packet represents a single network message.
-// It has a byte code indicating the type of the message
-// and a data payload in the form of a byte slice.
+// Packet is a byte sequence
+// representing a message
+// serialized to be sent
+// through network.
 type Packet struct {
 	Opcode int32
 	Length int64
 	Data   []byte
 }
 
-// NewPacket creates a new packet.
-// It expects a byteCode for the type of message and
-// a data parameter in the form of a byte slice.
+// NewPacket creates a new packet
+// with the specified opcode. Opcodes
+// are required to identify the type
+// of the network packet.
 func NewPacket(opcode int32, data []byte) *Packet {
 	return &Packet{
 		Opcode: opcode,
@@ -25,7 +27,8 @@ func NewPacket(opcode int32, data []byte) *Packet {
 	}
 }
 
-// Bytes returns the raw byte slice serialization of the packet.
+// Bytes returns the raw binary representation
+// of the packet.
 func (packet *Packet) Bytes() ([]byte, error) {
 	buffer := bytes.NewBuffer(make([]byte,
 		4+8+len(packet.Data)))
