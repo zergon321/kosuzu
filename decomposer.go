@@ -497,6 +497,6 @@ func (decomposer *Decomposer) ReadNBytes(n int) ([]byte, error) {
 // to read values of certain types from the packet.
 func NewPacketDecomposer(packet *Packet) *Decomposer {
 	return &Decomposer{
-		buffer: bytes.NewReader(packet.Data),
+		buffer: bytes.NewReader(packet.payload),
 	}
 }

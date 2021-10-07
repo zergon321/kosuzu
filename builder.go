@@ -140,7 +140,7 @@ func (builder *Builder) AddUint8Array(val []uint8) error {
 
 func (builder *Builder) AddInt16Array(val []int16) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val) * 2))
+	err := builder.AddInt32(int32(len(val)))
 
 	if err != nil {
 		return err
@@ -153,7 +153,7 @@ func (builder *Builder) AddInt16Array(val []int16) error {
 
 func (builder *Builder) AddUint16Array(val []uint16) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val) * 2))
+	err := builder.AddInt32(int32(len(val)))
 
 	if err != nil {
 		return err
@@ -166,7 +166,7 @@ func (builder *Builder) AddUint16Array(val []uint16) error {
 
 func (builder *Builder) AddInt32Array(val []int32) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val) * 4))
+	err := builder.AddInt32(int32(len(val)))
 
 	if err != nil {
 		return err
@@ -179,7 +179,7 @@ func (builder *Builder) AddInt32Array(val []int32) error {
 
 func (builder *Builder) AddUint32Array(val []uint32) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val) * 4))
+	err := builder.AddInt32(int32(len(val)))
 
 	if err != nil {
 		return err
@@ -192,7 +192,7 @@ func (builder *Builder) AddUint32Array(val []uint32) error {
 
 func (builder *Builder) AddInt64Array(val []int64) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val) * 8))
+	err := builder.AddInt32(int32(len(val)))
 
 	if err != nil {
 		return err
@@ -205,7 +205,7 @@ func (builder *Builder) AddInt64Array(val []int64) error {
 
 func (builder *Builder) AddUint64Array(val []uint64) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val) * 8))
+	err := builder.AddInt32(int32(len(val)))
 
 	if err != nil {
 		return err
@@ -218,7 +218,7 @@ func (builder *Builder) AddUint64Array(val []uint64) error {
 
 func (builder *Builder) AddFloat32Array(val []float32) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val) * 4))
+	err := builder.AddInt32(int32(len(val)))
 
 	if err != nil {
 		return err
@@ -231,7 +231,7 @@ func (builder *Builder) AddFloat32Array(val []float32) error {
 
 func (builder *Builder) AddFloat64Array(val []float64) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val) * 8))
+	err := builder.AddInt32(int32(len(val)))
 
 	if err != nil {
 		return err
@@ -244,7 +244,7 @@ func (builder *Builder) AddFloat64Array(val []float64) error {
 
 func (builder *Builder) AddComplex64Array(val []complex64) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val) * 8))
+	err := builder.AddInt32(int32(len(val)))
 
 	if err != nil {
 		return err
@@ -257,7 +257,7 @@ func (builder *Builder) AddComplex64Array(val []complex64) error {
 
 func (builder *Builder) AddComplex128Array(val []complex128) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val) * 16))
+	err := builder.AddInt32(int32(len(val)))
 
 	if err != nil {
 		return err
@@ -283,7 +283,7 @@ func (builder *Builder) AddBoolArray(val []bool) error {
 
 func (builder *Builder) AddRunes(val []rune) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val) * 4))
+	err := builder.AddInt32(int32(len(val)))
 
 	if err != nil {
 		return err

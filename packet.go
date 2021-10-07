@@ -10,9 +10,24 @@ import (
 // serialized to be sent
 // through network.
 type Packet struct {
-	Opcode int32
-	Length int64
-	Data   []byte
+	Opcode     int32
+	dataLength int64
+	payload    []byte
+}
+
+// Payload returns the data written
+// to the network packet.
+func (packet *Packet) Payload() []byte {
+	payload := make([]byte, len(packet.payload))
+	copy(payload, payload)
+
+	return payload
+}
+
+// DataLength returns the length of
+// the network packet payload.
+func (packet *Packet) DataLength() int64 {
+	return packet.dataLength
 }
 
 // NewPacket creates a new packet
@@ -21,9 +36,9 @@ type Packet struct {
 // of the network packet.
 func NewPacket(opcode int32, data []byte) *Packet {
 	return &Packet{
-		Opcode: opcode,
-		Length: int64(len(data)),
-		Data:   data,
+		Opcode:     opcode,
+		dataLength: int64(len(data)),
+		payload:    data,
 	}
 }
 
@@ -31,7 +46,7 @@ func NewPacket(opcode int32, data []byte) *Packet {
 // of the packet.
 func (packet *Packet) Bytes() ([]byte, error) {
 	buffer := bytes.NewBuffer(make([]byte,
-		4+8+len(packet.Data)))
+		4+8+packet.dataLength))
 	buffer.Reset()
 	err := binary.Write(buffer,
 		binary.BigEndian, packet.Opcode)
@@ -41,13 +56,13 @@ func (packet *Packet) Bytes() ([]byte, error) {
 	}
 
 	err = binary.Write(buffer,
-		binary.BigEndian, packet.Length)
+		binary.BigEndian, packet.dataLength)
 
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = buffer.Write(packet.Data)
+	_, err = buffer.Write(packet.payload)
 
 	if err != nil {
 		return nil, err
