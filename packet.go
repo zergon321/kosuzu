@@ -32,6 +32,7 @@ func NewPacket(opcode int32, data []byte) *Packet {
 func (packet *Packet) Bytes() ([]byte, error) {
 	buffer := bytes.NewBuffer(make([]byte,
 		4+8+len(packet.Data)))
+	buffer.Reset()
 	err := binary.Write(buffer,
 		binary.BigEndian, packet.Opcode)
 
