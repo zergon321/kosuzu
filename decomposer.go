@@ -445,6 +445,24 @@ func (decomposer *Decomposer) ReadComplex128Array() ([]complex128, error) {
 	return val, nil
 }
 
+func (decomposer *Decomposer) ReadBoolArray() ([]bool, error) {
+	// Read the byte slice length.
+	length, err := decomposer.ReadInt32()
+
+	if err != nil {
+		return nil, err
+	}
+
+	val := make([]bool, length)
+	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
 func (decomposer *Decomposer) ReadRunes() ([]rune, error) {
 	// Read the byte slice length.
 	length, err := decomposer.ReadInt32()

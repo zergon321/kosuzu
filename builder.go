@@ -268,6 +268,19 @@ func (builder *Builder) AddComplex128Array(val []complex128) error {
 	return err
 }
 
+func (builder *Builder) AddBoolArray(val []bool) error {
+	// Write the number of bytes.
+	err := builder.AddInt32(int32(len(val)))
+
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(builder.buffer, binary.BigEndian, val)
+
+	return err
+}
+
 func (builder *Builder) AddRunes(val []rune) error {
 	// Write the number of bytes.
 	err := builder.AddInt32(int32(len(val) * 4))
