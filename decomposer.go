@@ -210,8 +210,8 @@ func (decomposer *Decomposer) ReadString() (string, error) {
 	return string(strBytes), nil
 }
 
-// ReadBytes reads bytes from the packet.
-func (decomposer *Decomposer) ReadBytes() ([]byte, error) {
+// ReadByteArray reads bytes from the packet.
+func (decomposer *Decomposer) ReadByteArray() ([]byte, error) {
 	// Read the byte slice length.
 	length, err := decomposer.ReadInt32()
 
@@ -463,7 +463,7 @@ func (decomposer *Decomposer) ReadBoolArray() ([]bool, error) {
 	return val, nil
 }
 
-func (decomposer *Decomposer) ReadRunes() ([]rune, error) {
+func (decomposer *Decomposer) ReadRuneArray() ([]rune, error) {
 	// Read the byte slice length.
 	length, err := decomposer.ReadInt32()
 

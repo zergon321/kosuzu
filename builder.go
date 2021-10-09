@@ -10,6 +10,12 @@ type Builder struct {
 	buffer *bytes.Buffer
 }
 
+// AddBytes adds the byte sequence to
+// the buffer without writing its size.
+func (builder *Builder) AddBytes(val []byte) error {
+	return binary.Write(builder.buffer, binary.BigEndian, val)
+}
+
 // AddBool adds a bool value to the packet.
 func (builder *Builder) AddBool(val bool) error {
 	return binary.Write(builder.buffer, binary.BigEndian, val)
@@ -99,8 +105,8 @@ func (builder *Builder) AddString(val string) error {
 	return err
 }
 
-// AddBytes adds bytes value to the packet.
-func (builder *Builder) AddBytes(val []byte) error {
+// AddByteArray adds bytes value to the packet.
+func (builder *Builder) AddByteArray(val []byte) error {
 	// Write the number of bytes.
 	err := builder.AddInt32(int32(len(val)))
 
@@ -281,7 +287,7 @@ func (builder *Builder) AddBoolArray(val []bool) error {
 	return err
 }
 
-func (builder *Builder) AddRunes(val []rune) error {
+func (builder *Builder) AddRuneArray(val []rune) error {
 	// Write the number of bytes.
 	err := builder.AddInt32(int32(len(val)))
 
