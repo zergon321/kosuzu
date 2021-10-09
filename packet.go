@@ -19,7 +19,7 @@ type Packet struct {
 // to the network packet.
 func (packet *Packet) Payload() []byte {
 	payload := make([]byte, len(packet.payload))
-	copy(payload, payload)
+	copy(payload, packet.payload)
 
 	return payload
 }
