@@ -30,18 +30,6 @@ func (packet *Packet) DataLength() int64 {
 	return packet.dataLength
 }
 
-// NewPacket creates a new packet
-// with the specified opcode. Opcodes
-// are required to identify the type
-// of the network packet.
-func NewPacket(opcode int32, data []byte) *Packet {
-	return &Packet{
-		Opcode:     opcode,
-		dataLength: int64(len(data)),
-		payload:    data,
-	}
-}
-
 // Bytes returns the raw binary representation
 // of the packet.
 func (packet *Packet) Bytes() ([]byte, error) {
@@ -69,4 +57,48 @@ func (packet *Packet) Bytes() ([]byte, error) {
 	}
 
 	return buffer.Bytes(), nil
+}
+
+// PacketFromBytes creates a new packet
+// out of the byte sequence.
+func PacketFromBytes(data []byte) (*Packet, error) {
+	buffer := bytes.NewBuffer(data)
+	packet := new(Packet)
+
+	err := binary.Read(buffer,
+		binary.BigEndian, &packet.Opcode)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = binary.Read(buffer,
+		binary.BigEndian, &packet.dataLength)
+
+	if err != nil {
+		return nil, err
+	}
+
+	packet.payload = make([]byte, packet.dataLength)
+
+	err = binary.Read(buffer,
+		binary.BigEndian, &packet.payload)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return packet, nil
+}
+
+// NewPacket creates a new packet
+// with the specified opcode. Opcodes
+// are required to identify the type
+// of the network packet.
+func NewPacket(opcode int32, data []byte) *Packet {
+	return &Packet{
+		Opcode:     opcode,
+		dataLength: int64(len(data)),
+		payload:    data,
+	}
 }
