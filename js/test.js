@@ -45,3 +45,9 @@ obj = kosuzu.deserialize(scheme, restoredPacket);
 
 console.log("Deserialized packet:")
 console.log(obj);
+
+// Serialize an empty packet.
+pk = kosuzu.serialize(13, {});
+console.log("Empty packet:");
+console.log(pk);
+console.log(kosuzu.packetBytes(pk));
