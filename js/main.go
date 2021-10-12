@@ -341,8 +341,12 @@ func deserialize(scheme map[string]interface{}, packet map[string]interface{}) m
 }
 
 func main() {
-	js.Module.Get("exports").Set("serialize", serialize)
-	js.Module.Get("exports").Set("deserialize", deserialize)
-	js.Module.Get("exports").Set("packetBytes", packetBytes)
-	js.Module.Get("exports").Set("packetFromBytes", packetFromBytes)
+	exports := map[string]interface{}{
+		"serialize":       serialize,
+		"deserialize":     deserialize,
+		"packetBytes":     packetBytes,
+		"packetFromBytes": packetFromBytes,
+	}
+
+	js.Global.Set("kosuzu", exports)
 }
