@@ -28,10 +28,36 @@ func BenchmarkSerializeReflect(b *testing.B) {
 
 func BenchmarkSerializeCustom(b *testing.B) {
 	order := binary.BigEndian
-	builder := kosuzu.NewPacketBuilder(1024, order)
+	builder := kosuzu.NewPacketBuilder(512, order)
 
 	serialize := func(opcode int32, choice *Choice) kosuzu.Packet {
 		builder.Reset()
+
+		builder.AddInt32(choice.Parameter)
+		builder.AddInt64Array(choice.Numbers)
+		builder.AddComplex128Array(choice.Parameters)
+
+		return builder.BuildPacket(opcode)
+	}
+
+	choice := &Choice{
+		Parameter:  34,
+		Numbers:    []int64{13, 14, 15, 16, 18},
+		Parameters: []complex128{2 + 3i, 3 + 1i, 2 + 5i},
+	}
+
+	for i := 0; i < b.N; i++ {
+		serialize(18, choice)
+	}
+}
+
+func BenchmarkSerializeCustomReuseBuffers(b *testing.B) {
+	order := binary.BigEndian
+	var buffer [512]byte
+	builder, _ := kosuzu.NewPacketBuilderWithBuffer(buffer[:], order)
+
+	serialize := func(opcode int32, choice *Choice) kosuzu.Packet {
+		builder.ResetWithBuffer(buffer[:])
 
 		builder.AddInt32(choice.Parameter)
 		builder.AddInt64Array(choice.Numbers)
@@ -105,6 +131,7 @@ func BenchmarkDeserializeCustomNoCopy(b *testing.B) {
 
 		builder.AddInt32(choice.Parameter)
 		builder.AddInt64Array(choice.Numbers)
+		builder.AddComplex128Array(choice.Parameters)
 
 		return builder.BuildPacket(opcode)
 	}
