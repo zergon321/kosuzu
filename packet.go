@@ -11,39 +11,41 @@ import (
 // serialized to be sent
 // through network.
 type Packet struct {
-	Opcode     int32
-	dataLength int64
-	payload    []byte
+	Opcode        int32
+	payloadLength int64
+	data          []byte
 }
 
 // Payload returns the data written
 // to the network packet.
 func (packet *Packet) Payload() []byte {
-	payload := make([]byte, len(packet.payload))
-	copy(payload, packet.payload)
+	payload := make([]byte, len(packet.data[12:]))
+	copy(payload, packet.data)
 
 	return payload
 }
 
-// DataLength returns the length of
+func (packet *Packet) PayloadNoCopy() []byte {
+	return packet.data[12:]
+}
+
+// PayloadLength returns the length of
 // the network packet payload.
-func (packet *Packet) DataLength() int64 {
-	return packet.dataLength
+func (packet *Packet) PayloadLength() int64 {
+	return packet.payloadLength
 }
 
 // Bytes returns the raw binary representation
 // of the packet.
 func (packet *Packet) Bytes() ([]byte, error) {
-	buffer := bytes.NewBuffer(make([]byte,
-		4+8+packet.dataLength))
-	buffer.Reset()
-	_, err := packet.WriteTo(buffer)
+	data := make([]byte, len(packet.data))
+	copy(data, packet.data)
 
-	if err != nil {
-		return nil, err
-	}
+	return data, nil
+}
 
-	return buffer.Bytes(), nil
+func (packet *Packet) BytesNoCopy() ([]byte, error) {
+	return packet.data, nil
 }
 
 // WriteTo writes the whole contents of
@@ -57,19 +59,19 @@ func (packet *Packet) WriteTo(stream io.Writer) (int64, error) {
 	}
 
 	err = binary.Write(stream,
-		binary.BigEndian, packet.dataLength)
+		binary.BigEndian, packet.payloadLength)
 
 	if err != nil {
 		return 12, err
 	}
 
-	n, err := stream.Write(packet.payload)
+	n, err := stream.Write(packet.data)
 
 	if err != nil {
 		return int64(n), err
 	}
 
-	return 12 + packet.dataLength, nil
+	return 12 + packet.payloadLength, nil
 }
 
 // ReadPacketFrom reads a new
@@ -85,20 +87,20 @@ func ReadPacketFrom(stream io.Reader) (int64, *Packet, error) {
 	}
 
 	err = binary.Read(stream,
-		binary.BigEndian, &packet.dataLength)
+		binary.BigEndian, &packet.payloadLength)
 
 	if err != nil {
 		return 12, nil, err
 	}
 
-	packet.payload = make([]byte, packet.dataLength)
-	n, err := stream.Read(packet.payload)
+	packet.data = make([]byte, packet.payloadLength)
+	n, err := stream.Read(packet.data)
 
 	if err != nil {
 		return int64(n), nil, err
 	}
 
-	return 12 + packet.dataLength, packet, nil
+	return 12 + packet.payloadLength, packet, nil
 }
 
 // PacketFromBytes creates a new packet
@@ -114,14 +116,23 @@ func PacketFromBytes(data []byte) (*Packet, error) {
 	return packet, nil
 }
 
-// NewPacket creates a new packet
+// newPacket creates a new packet
 // with the specified opcode. Opcodes
 // are required to identify the type
 // of the network packet.
-func NewPacket(opcode int32, data []byte) *Packet {
+func newPacket(opcode int32, data []byte, order binary.ByteOrder) *Packet {
+	payloadLength := int64(len(data)) - 12
+
+	if order == nil {
+		order = binary.BigEndian
+	}
+
+	order.PutUint32(data, uint32(opcode))
+	order.PutUint64(data[4:], uint64(payloadLength))
+
 	return &Packet{
-		Opcode:     opcode,
-		dataLength: int64(len(data)),
-		payload:    data,
+		Opcode:        opcode,
+		payloadLength: payloadLength,
+		data:          data,
 	}
 }
