@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 
 	"github.com/zergon321/kosuzu"
@@ -75,17 +76,17 @@ func main() {
 		Complex128s: []complex128{9 + 8i, 5 + 12i},
 	}
 
-	packet, err := kosuzu.Serialize(13, data)
+	packet, err := kosuzu.Serialize(13, data, binary.BigEndian)
 	handleError(err)
 	rawData, err := packet.Bytes()
 	handleError(err)
 
 	fmt.Println("Packet:", rawData)
 	fmt.Println("Packet length:", len(rawData))
-	fmt.Println("Packet contents length:", packet.DataLength())
+	fmt.Println("Packet contents length:", packet.PayloadLength())
 
 	restored := new(Data)
-	err = kosuzu.Deserialize(packet, &restored)
+	err = kosuzu.Deserialize(packet, &restored, binary.BigEndian)
 	handleError(err)
 
 	fmt.Println(restored)

@@ -1,197 +1,221 @@
 package kosuzu
 
 import (
-	"bytes"
 	"encoding/binary"
+	"fmt"
+	"math"
+	"reflect"
+	"unsafe"
 )
 
 // Decomposer allows you to read
 // values of different types from the packet.
 type Decomposer struct {
-	buffer *bytes.Reader
+	buffer          []byte
+	currentPosition int
+	order           binary.ByteOrder
 }
 
 // ReadBool reads a bool value from the packet.
 func (decomposer *Decomposer) ReadBool() (bool, error) {
-	var result bool
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return false, err
+	if decomposer.currentPosition >= len(decomposer.buffer) {
+		return false, fmt.Errorf("buffer depleted")
 	}
+
+	result := decomposer.buffer[decomposer.currentPosition] != 0
+	decomposer.currentPosition++
 
 	return result, nil
 }
 
 // ReadRune reads a rune value from the packet.
-func (decomposer *Decomposer) ReadRune() (rune, int, error) {
-	var result rune
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 'や', 3, err
+func (decomposer *Decomposer) ReadRune() (rune, error) {
+	if decomposer.currentPosition+4-1 >= len(decomposer.buffer) {
+		return 'や', fmt.Errorf("buffer depleted")
 	}
 
-	return result, len(string(result)), nil
+	result := rune(decomposer.order.Uint32(
+		decomposer.buffer[decomposer.currentPosition:]))
+	decomposer.currentPosition += 4
+
+	return result, nil
 }
 
 // ReadByte reads a byte value from the packet.
 func (decomposer *Decomposer) ReadByte() (byte, error) {
-	var result byte
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	result := decomposer.buffer[decomposer.currentPosition]
+	decomposer.currentPosition++
 
 	return result, nil
 }
 
 // ReadInt8 reads an int8 value from the packet.
 func (decomposer *Decomposer) ReadInt8() (int8, error) {
-	var result int8
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	result := int8(decomposer.buffer[decomposer.currentPosition])
+	decomposer.currentPosition++
 
 	return result, nil
 }
 
 // ReadInt16 reads an int16 value from the packet.
 func (decomposer *Decomposer) ReadInt16() (int16, error) {
-	var result int16
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition+2-1 >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	result := int16(decomposer.order.Uint16(
+		decomposer.buffer[decomposer.currentPosition:]))
+	decomposer.currentPosition += 2
 
 	return result, nil
 }
 
 // ReadInt32 reads an int32 value from the packet.
 func (decomposer *Decomposer) ReadInt32() (int32, error) {
-	var result int32
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition+4-1 >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	result := int32(decomposer.order.Uint32(
+		decomposer.buffer[decomposer.currentPosition:]))
+	decomposer.currentPosition += 4
 
 	return result, nil
 }
 
 // ReadInt64 reads an int64 value from the packet.
 func (decomposer *Decomposer) ReadInt64() (int64, error) {
-	var result int64
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition+8-1 >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	result := int64(decomposer.order.Uint64(
+		decomposer.buffer[decomposer.currentPosition:]))
+	decomposer.currentPosition += 8
 
 	return result, nil
 }
 
 // ReadUint8 reads a uint8 value from the packet.
 func (decomposer *Decomposer) ReadUint8() (uint8, error) {
-	var result uint8
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	result := decomposer.buffer[decomposer.currentPosition]
+	decomposer.currentPosition++
 
 	return result, nil
 }
 
 // ReadUint16 reads a uint16 value from the packet.
 func (decomposer *Decomposer) ReadUint16() (uint16, error) {
-	var result uint16
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition+2-1 >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	result := decomposer.order.Uint16(
+		decomposer.buffer[decomposer.currentPosition:])
+	decomposer.currentPosition += 2
 
 	return result, nil
 }
 
 // ReadUint32 reads a uint32 value from the packet.
 func (decomposer *Decomposer) ReadUint32() (uint32, error) {
-	var result uint32
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition+4-1 >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	result := decomposer.order.Uint32(
+		decomposer.buffer[decomposer.currentPosition:])
+	decomposer.currentPosition += 4
 
 	return result, nil
 }
 
 // ReadUint64 reads a uint64 value from the packet.
 func (decomposer *Decomposer) ReadUint64() (uint64, error) {
-	var result uint64
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition+8-1 >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	result := decomposer.order.Uint64(
+		decomposer.buffer[decomposer.currentPosition:])
+	decomposer.currentPosition += 8
 
 	return result, nil
 }
 
 // ReadFloat32 reads a float32 value from the packet.
 func (decomposer *Decomposer) ReadFloat32() (float32, error) {
-	var result float32
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition+4-1 >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	result := math.Float32frombits(decomposer.order.Uint32(
+		decomposer.buffer[decomposer.currentPosition:]))
+	decomposer.currentPosition += 4
 
 	return result, nil
 }
 
 // ReadFloat64 reads a float64 value from the packet.
 func (decomposer *Decomposer) ReadFloat64() (float64, error) {
-	var result float64
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition+8-1 >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	result := math.Float64frombits(decomposer.order.Uint64(
+		decomposer.buffer[decomposer.currentPosition:]))
+	decomposer.currentPosition += 8
 
 	return result, nil
 }
 
 // ReadComplex64 reads a complex64 value from the packet.
 func (decomposer *Decomposer) ReadComplex64() (complex64, error) {
-	var result complex64
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition+8-1 >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	realPart := math.Float32frombits(decomposer.order.Uint32(
+		decomposer.buffer[decomposer.currentPosition:]))
+	imagPart := math.Float32frombits(decomposer.order.Uint32(
+		decomposer.buffer[decomposer.currentPosition+4:]))
+	result := complex(realPart, imagPart)
+
+	decomposer.currentPosition += 8
 
 	return result, nil
 }
 
 // ReadComplex128 reads a complex128 value from the packet.
 func (decomposer *Decomposer) ReadComplex128() (complex128, error) {
-	var result complex128
-	err := binary.Read(decomposer.buffer, binary.BigEndian, &result)
-
-	if err != nil {
-		return 0, err
+	if decomposer.currentPosition+16-1 >= len(decomposer.buffer) {
+		return 0, fmt.Errorf("buffer depleted")
 	}
+
+	realPart := math.Float64frombits(decomposer.order.Uint64(
+		decomposer.buffer[decomposer.currentPosition:]))
+	imagPart := math.Float64frombits(decomposer.order.Uint64(
+		decomposer.buffer[decomposer.currentPosition+4:]))
+	result := complex(realPart, imagPart)
+
+	decomposer.currentPosition += 16
 
 	return result, nil
 }
 
-// ReadString reads a string value from the packet.
+// ReadString copies a string value from the packet.
 func (decomposer *Decomposer) ReadString() (string, error) {
 	// Read the string length.
 	length, err := decomposer.ReadInt32()
@@ -200,17 +224,19 @@ func (decomposer *Decomposer) ReadString() (string, error) {
 		return "", err
 	}
 
-	strBytes := make([]byte, length)
-	_, err = decomposer.buffer.Read(strBytes)
-
-	if err != nil {
-		return "", err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return "", fmt.Errorf("buffer depleted")
 	}
 
-	return string(strBytes), nil
+	strBytes := make([]byte, length)
+	copy(strBytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	return *(*string)(unsafe.Pointer(&strBytes)), nil
 }
 
-// ReadByteArray reads bytes from the packet.
+// ReadByteArray copies bytes from the packet.
 func (decomposer *Decomposer) ReadByteArray() ([]byte, error) {
 	// Read the byte slice length.
 	length, err := decomposer.ReadInt32()
@@ -219,12 +245,14 @@ func (decomposer *Decomposer) ReadByteArray() ([]byte, error) {
 		return nil, err
 	}
 
-	bytes := make([]byte, length)
-	_, err = decomposer.buffer.Read(bytes)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
+
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
 
 	return bytes, nil
 }
@@ -237,14 +265,19 @@ func (decomposer *Decomposer) ReadInt8Array() ([]int8, error) {
 		return nil, err
 	}
 
-	val := make([]int8, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	data := *(*[]int8)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadUint8Array() ([]uint8, error) {
@@ -255,14 +288,19 @@ func (decomposer *Decomposer) ReadUint8Array() ([]uint8, error) {
 		return nil, err
 	}
 
-	val := make([]uint8, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	data := *(*[]uint8)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadInt16Array() ([]int16, error) {
@@ -273,14 +311,21 @@ func (decomposer *Decomposer) ReadInt16Array() ([]int16, error) {
 		return nil, err
 	}
 
-	val := make([]int16, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	header.Len /= 2
+	header.Cap /= 2
+	data := *(*[]int16)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadUint16Array() ([]uint16, error) {
@@ -291,14 +336,21 @@ func (decomposer *Decomposer) ReadUint16Array() ([]uint16, error) {
 		return nil, err
 	}
 
-	val := make([]uint16, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	header.Len /= 2
+	header.Cap /= 2
+	data := *(*[]uint16)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadInt32Array() ([]int32, error) {
@@ -309,14 +361,21 @@ func (decomposer *Decomposer) ReadInt32Array() ([]int32, error) {
 		return nil, err
 	}
 
-	val := make([]int32, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	header.Len /= 4
+	header.Cap /= 4
+	data := *(*[]int32)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadUint32Array() ([]uint32, error) {
@@ -327,14 +386,21 @@ func (decomposer *Decomposer) ReadUint32Array() ([]uint32, error) {
 		return nil, err
 	}
 
-	val := make([]uint32, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	header.Len /= 4
+	header.Cap /= 4
+	data := *(*[]uint32)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadInt64Array() ([]int64, error) {
@@ -345,14 +411,21 @@ func (decomposer *Decomposer) ReadInt64Array() ([]int64, error) {
 		return nil, err
 	}
 
-	val := make([]int64, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	header.Len /= 8
+	header.Cap /= 8
+	data := *(*[]int64)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadUint64Array() ([]uint64, error) {
@@ -363,14 +436,21 @@ func (decomposer *Decomposer) ReadUint64Array() ([]uint64, error) {
 		return nil, err
 	}
 
-	val := make([]uint64, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	header.Len /= 8
+	header.Cap /= 8
+	data := *(*[]uint64)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadFloat32Array() ([]float32, error) {
@@ -381,14 +461,21 @@ func (decomposer *Decomposer) ReadFloat32Array() ([]float32, error) {
 		return nil, err
 	}
 
-	val := make([]float32, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	header.Len /= 4
+	header.Cap /= 4
+	data := *(*[]float32)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadFloat64Array() ([]float64, error) {
@@ -399,14 +486,21 @@ func (decomposer *Decomposer) ReadFloat64Array() ([]float64, error) {
 		return nil, err
 	}
 
-	val := make([]float64, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	header.Len /= 8
+	header.Cap /= 8
+	data := *(*[]float64)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadComplex64Array() ([]complex64, error) {
@@ -417,14 +511,21 @@ func (decomposer *Decomposer) ReadComplex64Array() ([]complex64, error) {
 		return nil, err
 	}
 
-	val := make([]complex64, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	header.Len /= 8
+	header.Cap /= 8
+	data := *(*[]complex64)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadComplex128Array() ([]complex128, error) {
@@ -435,14 +536,21 @@ func (decomposer *Decomposer) ReadComplex128Array() ([]complex128, error) {
 		return nil, err
 	}
 
-	val := make([]complex128, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	header.Len /= 16
+	header.Cap /= 16
+	data := *(*[]complex128)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadBoolArray() ([]bool, error) {
@@ -453,14 +561,19 @@ func (decomposer *Decomposer) ReadBoolArray() ([]bool, error) {
 		return nil, err
 	}
 
-	val := make([]bool, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	data := *(*[]bool)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 func (decomposer *Decomposer) ReadRuneArray() ([]rune, error) {
@@ -471,32 +584,50 @@ func (decomposer *Decomposer) ReadRuneArray() ([]rune, error) {
 		return nil, err
 	}
 
-	val := make([]rune, length)
-	err = binary.Read(decomposer.buffer, binary.BigEndian, &val)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+int(length)-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
 
-	return val, nil
+	bytes := make([]byte, length)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+int(length)])
+	decomposer.currentPosition += int(length)
+
+	header := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	header.Len /= 4
+	header.Cap /= 4
+	data := *(*[]rune)(unsafe.Pointer(&header))
+
+	return data, nil
 }
 
 // ReadNBytes reads n bytes from the packet.
 func (decomposer *Decomposer) ReadNBytes(n int) ([]byte, error) {
-	bytes := make([]byte, n)
-	_, err := decomposer.buffer.Read(bytes)
-
-	if err != nil {
-		return nil, err
+	if decomposer.currentPosition+n-1 >= len(decomposer.buffer) {
+		return nil, fmt.Errorf("buffer depleted")
 	}
+
+	bytes := make([]byte, n)
+	copy(bytes, decomposer.buffer[decomposer.
+		currentPosition:decomposer.currentPosition+n])
+	decomposer.currentPosition += n
 
 	return bytes, nil
 }
 
 // NewPacketDecomposer creates a new packet decomposer
 // to read values of certain types from the packet.
-func NewPacketDecomposer(packet *Packet) *Decomposer {
-	return &Decomposer{
-		buffer: bytes.NewReader(packet.data),
+func NewPacketDecomposer(packet Packet, order binary.ByteOrder) *Decomposer {
+	decomposer := &Decomposer{
+		buffer:          packet.data,
+		currentPosition: 12,
 	}
+
+	if order == nil {
+		order = binary.BigEndian
+	}
+
+	decomposer.order = order
+
+	return decomposer
 }

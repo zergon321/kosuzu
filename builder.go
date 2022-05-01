@@ -174,7 +174,7 @@ func (builder *Builder) AddComplex64(val complex64) error {
 
 	imagPart := float32(imag(val))
 	builder.order.PutUint32(builder.
-		buffer[builder.currentPosition:], math.Float32bits(imagPart))
+		buffer[builder.currentPosition+4:], math.Float32bits(imagPart))
 
 	builder.currentPosition += 8
 
@@ -188,7 +188,7 @@ func (builder *Builder) AddComplex128(val complex128) error {
 	builder.order.PutUint64(builder.
 		buffer[builder.currentPosition:], math.Float64bits(real(val)))
 	builder.order.PutUint64(builder.
-		buffer[builder.currentPosition:], math.Float64bits(imag(val)))
+		buffer[builder.currentPosition+8:], math.Float64bits(imag(val)))
 
 	builder.currentPosition += 16
 
@@ -262,7 +262,7 @@ func (builder *Builder) AddUint8Array(val []uint8) error {
 
 func (builder *Builder) AddInt16Array(val []int16) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val)))
+	err := builder.AddInt32(int32(len(val)) * 2)
 
 	if err != nil {
 		return err
@@ -279,7 +279,7 @@ func (builder *Builder) AddInt16Array(val []int16) error {
 
 func (builder *Builder) AddUint16Array(val []uint16) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val)))
+	err := builder.AddInt32(int32(len(val)) * 2)
 
 	if err != nil {
 		return err
@@ -296,7 +296,7 @@ func (builder *Builder) AddUint16Array(val []uint16) error {
 
 func (builder *Builder) AddInt32Array(val []int32) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val)))
+	err := builder.AddInt32(int32(len(val)) * 4)
 
 	if err != nil {
 		return err
@@ -313,7 +313,7 @@ func (builder *Builder) AddInt32Array(val []int32) error {
 
 func (builder *Builder) AddUint32Array(val []uint32) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val)))
+	err := builder.AddInt32(int32(len(val)) * 4)
 
 	if err != nil {
 		return err
@@ -330,7 +330,7 @@ func (builder *Builder) AddUint32Array(val []uint32) error {
 
 func (builder *Builder) AddInt64Array(val []int64) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val)))
+	err := builder.AddInt32(int32(len(val)) * 8)
 
 	if err != nil {
 		return err
@@ -347,7 +347,7 @@ func (builder *Builder) AddInt64Array(val []int64) error {
 
 func (builder *Builder) AddUint64Array(val []uint64) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val)))
+	err := builder.AddInt32(int32(len(val)) * 8)
 
 	if err != nil {
 		return err
@@ -364,7 +364,7 @@ func (builder *Builder) AddUint64Array(val []uint64) error {
 
 func (builder *Builder) AddFloat32Array(val []float32) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val)))
+	err := builder.AddInt32(int32(len(val)) * 4)
 
 	if err != nil {
 		return err
@@ -381,7 +381,7 @@ func (builder *Builder) AddFloat32Array(val []float32) error {
 
 func (builder *Builder) AddFloat64Array(val []float64) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val)))
+	err := builder.AddInt32(int32(len(val)) * 8)
 
 	if err != nil {
 		return err
@@ -398,7 +398,7 @@ func (builder *Builder) AddFloat64Array(val []float64) error {
 
 func (builder *Builder) AddComplex64Array(val []complex64) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val)))
+	err := builder.AddInt32(int32(len(val)) * 8)
 
 	if err != nil {
 		return err
@@ -415,7 +415,7 @@ func (builder *Builder) AddComplex64Array(val []complex64) error {
 
 func (builder *Builder) AddComplex128Array(val []complex128) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val)))
+	err := builder.AddInt32(int32(len(val)) * 16)
 
 	if err != nil {
 		return err
@@ -447,7 +447,7 @@ func (builder *Builder) AddBoolArray(val []bool) error {
 
 func (builder *Builder) AddRuneArray(val []rune) error {
 	// Write the number of bytes.
-	err := builder.AddInt32(int32(len(val)))
+	err := builder.AddInt32(int32(len(val)) * 4)
 
 	if err != nil {
 		return err
@@ -463,14 +463,16 @@ func (builder *Builder) AddRuneArray(val []rune) error {
 }
 
 // BuildPacket returns a packet with written values.
-func (builder *Builder) BuildPacket(opcode int32) *Packet {
-	return newPacket(opcode, builder.buffer, builder.order)
+func (builder *Builder) BuildPacket(opcode int32) Packet {
+	return newPacket(opcode,
+		builder.buffer[:builder.
+			currentPosition], builder.order)
 }
 
 // NewPacketBuilder creates a new packet builder
 // to write values of certain types into the packet.
-func NewPacketBuilder(initialLength int, order binary.ByteOrder) *Builder {
-	builder := &Builder{
+func NewPacketBuilder(initialLength int, order binary.ByteOrder) Builder {
+	builder := Builder{
 		buffer:          make([]byte, initialLength+12),
 		currentPosition: 12,
 	}
@@ -478,6 +480,8 @@ func NewPacketBuilder(initialLength int, order binary.ByteOrder) *Builder {
 	if order == nil {
 		order = binary.BigEndian
 	}
+
+	builder.order = order
 
 	return builder
 }

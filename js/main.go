@@ -27,18 +27,18 @@ func packetBytes(packet map[string]interface{}) []byte {
 }
 
 func packetFromBytes(data []byte) map[string]interface{} {
-	packet, _ := kosuzu.PacketFromBytes(data)
+	packet, _ := kosuzu.PacketFromBytes(data, binary.BigEndian)
 	jsPacket := map[string]interface{}{
-		"opcode":     packet.Opcode,
-		"dataLength": packet.DataLength(),
-		"payload":    packet.Payload(),
+		"opcode":        packet.Opcode,
+		"payloadLength": packet.PayloadLength(),
+		"payload":       packet.Payload(),
 	}
 
 	return jsPacket
 }
 
 func serialize(opcode int32, obj map[string]interface{}, scheme map[string]interface{}) map[string]interface{} {
-	builder := kosuzu.NewPacketBuilder()
+	builder := kosuzu.NewPacketBuilder(0, binary.BigEndian)
 
 	if len(scheme) > 0 {
 		for param, value := range obj {
@@ -208,19 +208,20 @@ func serialize(opcode int32, obj map[string]interface{}, scheme map[string]inter
 
 	packet := builder.BuildPacket(opcode)
 	jsPacket := map[string]interface{}{
-		"opcode":     packet.Opcode,
-		"dataLength": packet.DataLength(),
-		"payload":    packet.Payload(),
+		"opcode":        packet.Opcode,
+		"payloadLength": packet.PayloadLength(),
+		"payload":       packet.Payload(),
 	}
 
 	return jsPacket
 }
 
 func deserialize(scheme map[string]interface{}, packet map[string]interface{}) map[string]interface{} {
-	goPacket := kosuzu.NewPacket(
+	goPacket := kosuzu.NewPacketJS(
 		int32(packet["opcode"].(float64)),
 		packet["payload"].([]byte))
-	decomposer := kosuzu.NewPacketDecomposer(goPacket)
+	decomposer := kosuzu.NewPacketDecomposer(
+		goPacket, binary.BigEndian)
 	obj := map[string]interface{}{}
 
 	for param, typ := range scheme {
@@ -239,7 +240,7 @@ func deserialize(scheme map[string]interface{}, packet map[string]interface{}) m
 				obj[param] = val
 
 			case "rune":
-				val, _, _ := decomposer.ReadRune()
+				val, _ := decomposer.ReadRune()
 				obj[param] = val
 
 			case "int8":

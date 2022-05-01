@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"net"
 
 	"github.com/zergon321/kosuzu"
@@ -23,7 +24,7 @@ func main() {
 		Y:  20.07,
 	}
 
-	packet, err := kosuzu.Serialize(opcode, mvData)
+	packet, err := kosuzu.Serialize(opcode, mvData, binary.BigEndian)
 	handleError(err)
 	_, err = packet.WriteTo(conn)
 	handleError(err)

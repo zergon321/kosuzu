@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 
 	"github.com/zergon321/kosuzu"
@@ -18,16 +19,16 @@ func main() {
 		Age:     16,
 		Numbers: []byte{32, 25, 78},
 	}
-	packet, err := kosuzu.Serialize(32, person)
+	packet, err := kosuzu.Serialize(32, person, binary.BigEndian)
 	handleError(err)
 
-	data, err := packet.Bytes()
+	data, err := packet.BytesNoCopy()
 	handleError(err)
 
 	fmt.Println(data)
 
 	restored := new(Person)
-	err = kosuzu.Deserialize(packet, &restored)
+	err = kosuzu.Deserialize(packet, &restored, binary.BigEndian)
 	handleError(err)
 
 	fmt.Println(restored)

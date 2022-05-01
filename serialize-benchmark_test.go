@@ -1,7 +1,9 @@
 package kosuzu_test
 
 import (
+	"encoding/binary"
 	"testing"
+	"unsafe"
 
 	"github.com/zergon321/kosuzu"
 )
@@ -19,12 +21,15 @@ func BenchmarkSerializeReflect(b *testing.B) {
 		Parameters: []complex128{2 + 3i, 3 + 1i, 2 + 5i},
 	}
 
-	kosuzu.Serialize(18, choice)
+	for i := 0; i < b.N; i++ {
+		kosuzu.Serialize(18, choice, binary.BigEndian)
+	}
 }
 
 func BenchmarkSerializeCustom(b *testing.B) {
-	serialize := func(opcode int32, choice *Choice) *kosuzu.Packet {
-		builder := kosuzu.NewPacketBuilder()
+	order := binary.BigEndian
+	serialize := func(opcode int32, choice *Choice) kosuzu.Packet {
+		builder := kosuzu.NewPacketBuilder(1024, order)
 
 		builder.AddInt32(choice.Parameter)
 		builder.AddInt64Array(choice.Numbers)
@@ -39,7 +44,9 @@ func BenchmarkSerializeCustom(b *testing.B) {
 		Parameters: []complex128{2 + 3i, 3 + 1i, 2 + 5i},
 	}
 
-	serialize(18, choice)
+	for i := 0; i < b.N; i++ {
+		serialize(18, choice)
+	}
 }
 
 func BenchmarkDeserializeReflect(b *testing.B) {
@@ -49,22 +56,25 @@ func BenchmarkDeserializeReflect(b *testing.B) {
 		Parameters: []complex128{2 + 3i, 3 + 1i, 2 + 5i},
 	}
 
-	packet, _ := kosuzu.Serialize(18, choice)
+	packet, _ := kosuzu.Serialize(18, choice, binary.BigEndian)
 	restored := new(Choice)
-	kosuzu.Deserialize(packet, &restored)
+
+	for i := 0; i < b.N; i++ {
+		kosuzu.Deserialize(packet, &restored, binary.BigEndian)
+	}
 }
 
 func BenchmarkDeserializeCustom(b *testing.B) {
-	serialize := func(opcode int32, choice *Choice) *kosuzu.Packet {
-		builder := kosuzu.NewPacketBuilder()
+	serialize := func(opcode int32, choice *Choice) kosuzu.Packet {
+		builder := kosuzu.NewPacketBuilder(int(unsafe.Sizeof(Choice{})), binary.BigEndian)
 
 		builder.AddInt32(choice.Parameter)
 		builder.AddInt64Array(choice.Numbers)
 
 		return builder.BuildPacket(opcode)
 	}
-	deserialize := func(packet *kosuzu.Packet) *Choice {
-		decomposer := kosuzu.NewPacketDecomposer(packet)
+	deserialize := func(packet kosuzu.Packet) *Choice {
+		decomposer := kosuzu.NewPacketDecomposer(packet, binary.BigEndian)
 		choice := new(Choice)
 
 		choice.Parameter, _ = decomposer.ReadInt32()
@@ -81,5 +91,8 @@ func BenchmarkDeserializeCustom(b *testing.B) {
 	}
 
 	packet := serialize(18, choice)
-	deserialize(packet)
+
+	for i := 0; i < b.N; i++ {
+		deserialize(packet)
+	}
 }

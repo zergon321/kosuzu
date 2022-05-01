@@ -1,6 +1,7 @@
 package kosuzu
 
 import (
+	"encoding/binary"
 	"fmt"
 	"reflect"
 )
@@ -265,7 +266,7 @@ func readFromPacket(decomposer *Decomposer, fieldVal *reflect.Value, fieldTyp re
 	return nil
 }
 
-func writeToPacket(builder *Builder, fieldVal reflect.Value, fieldTyp reflect.Type) error {
+func writeToPacket(builder Builder, fieldVal reflect.Value, fieldTyp reflect.Type) error {
 	switch fieldTyp.Kind() {
 	case reflect.Int8:
 		err := builder.AddInt8(int8(fieldVal.Int()))
@@ -473,8 +474,8 @@ func writeToPacket(builder *Builder, fieldVal reflect.Value, fieldTyp reflect.Ty
 
 // Serialize serializes the given object
 // and creates a network packet from it.
-func Serialize(opcode int32, value interface{}) (*Packet, error) {
-	builder := NewPacketBuilder()
+func Serialize(opcode int32, value interface{}, order binary.ByteOrder) (Packet, error) {
+	builder := NewPacketBuilder(0, order)
 	val := reflect.ValueOf(value)
 
 	for val.Kind() == reflect.Ptr {
@@ -490,7 +491,7 @@ func Serialize(opcode int32, value interface{}) (*Packet, error) {
 				fieldVal, fieldTyp)
 
 			if err != nil {
-				return nil, err
+				return Packet{}, err
 			}
 		}
 	} else {
@@ -498,7 +499,7 @@ func Serialize(opcode int32, value interface{}) (*Packet, error) {
 			val, val.Type())
 
 		if err != nil {
-			return nil, err
+			return Packet{}, err
 		}
 	}
 
@@ -507,8 +508,8 @@ func Serialize(opcode int32, value interface{}) (*Packet, error) {
 
 // Deserialize deserializes the packet
 // into the given object.
-func Deserialize(packet *Packet, obj interface{}) error {
-	decomposer := NewPacketDecomposer(packet)
+func Deserialize(packet Packet, obj interface{}, order binary.ByteOrder) error {
+	decomposer := NewPacketDecomposer(packet, order)
 	val := reflect.ValueOf(obj)
 
 	for val.Kind() == reflect.Ptr {

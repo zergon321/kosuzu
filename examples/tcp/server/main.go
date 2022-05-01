@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"net"
 
@@ -19,10 +20,10 @@ func main() {
 	conn, err := listener.Accept()
 	handleError(err)
 
-	_, packet, err := kosuzu.ReadPacketFrom(conn)
+	_, packet, err := kosuzu.ReadPacketFrom(conn, binary.BigEndian, nil)
 	handleError(err)
 	var mvData PlayerMovement
-	err = kosuzu.Deserialize(packet, &mvData)
+	err = kosuzu.Deserialize(packet, &mvData, binary.BigEndian)
 	handleError(err)
 
 	fmt.Println(packet.Opcode)
