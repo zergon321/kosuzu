@@ -2,6 +2,7 @@ package kosuzu
 
 import (
 	"encoding/binary"
+	"fmt"
 	"math"
 	"reflect"
 	"unsafe"
@@ -20,6 +21,23 @@ func (builder *Builder) growIfNeeded(size int) {
 	}
 
 	builder.buffer = builder.buffer[:cap(builder.buffer)]
+}
+
+func (builder *Builder) Reset() {
+	prevBufferSize := len(builder.buffer)
+	builder.currentPosition = 12
+	builder.buffer = make([]byte, prevBufferSize)
+}
+
+func (builder *Builder) ResetWithBuffer(buffer []byte) error {
+	if len(buffer) < 12 {
+		return fmt.Errorf("insufficient buffer size")
+	}
+
+	builder.currentPosition = 12
+	builder.buffer = buffer
+
+	return nil
 }
 
 // AddBytes adds the byte sequence to
@@ -471,8 +489,8 @@ func (builder *Builder) BuildPacket(opcode int32) Packet {
 
 // NewPacketBuilder creates a new packet builder
 // to write values of certain types into the packet.
-func NewPacketBuilder(initialLength int, order binary.ByteOrder) Builder {
-	builder := Builder{
+func NewPacketBuilder(initialLength int, order binary.ByteOrder) *Builder {
+	builder := &Builder{
 		buffer:          make([]byte, initialLength+12),
 		currentPosition: 12,
 	}
@@ -484,4 +502,23 @@ func NewPacketBuilder(initialLength int, order binary.ByteOrder) Builder {
 	builder.order = order
 
 	return builder
+}
+
+func NewPacketBuilderWithBuffer(buffer []byte, order binary.ByteOrder) (*Builder, error) {
+	if len(buffer) < 12 {
+		return nil, fmt.Errorf("insufficient buffer size")
+	}
+
+	builder := &Builder{
+		buffer:          buffer,
+		currentPosition: 12,
+	}
+
+	if order == nil {
+		order = binary.BigEndian
+	}
+
+	builder.order = order
+
+	return builder, nil
 }

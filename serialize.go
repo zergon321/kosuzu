@@ -266,7 +266,7 @@ func readFromPacket(decomposer *Decomposer, fieldVal *reflect.Value, fieldTyp re
 	return nil
 }
 
-func writeToPacket(builder Builder, fieldVal reflect.Value, fieldTyp reflect.Type) error {
+func writeToPacket(builder *Builder, fieldVal reflect.Value, fieldTyp reflect.Type) error {
 	switch fieldTyp.Kind() {
 	case reflect.Int8:
 		err := builder.AddInt8(int8(fieldVal.Int()))

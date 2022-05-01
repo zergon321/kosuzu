@@ -28,8 +28,10 @@ func BenchmarkSerializeReflect(b *testing.B) {
 
 func BenchmarkSerializeCustom(b *testing.B) {
 	order := binary.BigEndian
+	builder := kosuzu.NewPacketBuilder(1024, order)
+
 	serialize := func(opcode int32, choice *Choice) kosuzu.Packet {
-		builder := kosuzu.NewPacketBuilder(1024, order)
+		builder.Reset()
 
 		builder.AddInt32(choice.Parameter)
 		builder.AddInt64Array(choice.Numbers)
@@ -80,6 +82,39 @@ func BenchmarkDeserializeCustom(b *testing.B) {
 		choice.Parameter, _ = decomposer.ReadInt32()
 		choice.Numbers, _ = decomposer.ReadInt64Array()
 		choice.Parameters, _ = decomposer.ReadComplex128Array()
+
+		return choice
+	}
+
+	choice := &Choice{
+		Parameter:  34,
+		Numbers:    []int64{13, 14, 15, 16, 18},
+		Parameters: []complex128{2 + 3i, 3 + 1i, 2 + 5i},
+	}
+
+	packet := serialize(18, choice)
+
+	for i := 0; i < b.N; i++ {
+		deserialize(packet)
+	}
+}
+
+func BenchmarkDeserializeCustomNoCopy(b *testing.B) {
+	serialize := func(opcode int32, choice *Choice) kosuzu.Packet {
+		builder := kosuzu.NewPacketBuilder(int(unsafe.Sizeof(Choice{})), binary.BigEndian)
+
+		builder.AddInt32(choice.Parameter)
+		builder.AddInt64Array(choice.Numbers)
+
+		return builder.BuildPacket(opcode)
+	}
+	deserialize := func(packet kosuzu.Packet) Choice {
+		var choice Choice
+		decomposer := kosuzu.NewPacketDecomposer(packet, binary.BigEndian)
+
+		choice.Parameter, _ = decomposer.ReadInt32()
+		choice.Numbers, _ = decomposer.ReadInt64ArrayNoCopy()
+		choice.Parameters, _ = decomposer.ReadComplex128ArrayNoCopy()
 
 		return choice
 	}
