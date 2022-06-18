@@ -126,18 +126,27 @@ func BenchmarkDeserializeCustom(b *testing.B) {
 }
 
 func BenchmarkDeserializeCustomNoCopy(b *testing.B) {
-	serialize := func(opcode int32, choice *Choice) kosuzu.Packet {
-		builder := kosuzu.NewPacketBuilder(int(unsafe.Sizeof(Choice{})), binary.BigEndian)
-
+	builder := kosuzu.NewPacketBuilder(
+		int(unsafe.Sizeof(Choice{})), binary.BigEndian)
+	serialize := func(builder *kosuzu.Builder, opcode int32, choice *Choice) kosuzu.Packet {
 		builder.AddInt32(choice.Parameter)
 		builder.AddInt64Array(choice.Numbers)
 		builder.AddComplex128Array(choice.Parameters)
 
 		return builder.BuildPacket(opcode)
 	}
-	deserialize := func(packet kosuzu.Packet) Choice {
+
+	choice := &Choice{
+		Parameter:  34,
+		Numbers:    []int64{13, 14, 15, 16, 18},
+		Parameters: []complex128{2 + 3i, 3 + 1i, 2 + 5i},
+	}
+	packet := serialize(builder, 18, choice)
+
+	decomposer := kosuzu.NewPacketDecomposer(
+		packet, binary.BigEndian)
+	deserialize := func(decomposer *kosuzu.Decomposer) Choice {
 		var choice Choice
-		decomposer := kosuzu.NewPacketDecomposer(packet, binary.BigEndian)
 
 		choice.Parameter, _ = decomposer.ReadInt32()
 		choice.Numbers, _ = decomposer.ReadInt64ArrayNoCopy()
@@ -146,15 +155,8 @@ func BenchmarkDeserializeCustomNoCopy(b *testing.B) {
 		return choice
 	}
 
-	choice := &Choice{
-		Parameter:  34,
-		Numbers:    []int64{13, 14, 15, 16, 18},
-		Parameters: []complex128{2 + 3i, 3 + 1i, 2 + 5i},
-	}
-
-	packet := serialize(18, choice)
-
 	for i := 0; i < b.N; i++ {
-		deserialize(packet)
+		decomposer.Reset()
+		deserialize(decomposer)
 	}
 }

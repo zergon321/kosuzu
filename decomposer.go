@@ -16,6 +16,10 @@ type Decomposer struct {
 	order           binary.ByteOrder
 }
 
+func (decomposer *Decomposer) Reset() {
+	decomposer.currentPosition = 12
+}
+
 // ReadBool reads a bool value from the packet.
 func (decomposer *Decomposer) ReadBool() (bool, error) {
 	if decomposer.currentPosition >= len(decomposer.buffer) {
